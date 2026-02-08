@@ -74,6 +74,9 @@
         .items-table {
             margin-bottom: 30px;
         }
+        .result-table {
+            margin-top: 30px;
+        }
     </style>
 </head>
 <body>
@@ -87,23 +90,19 @@
     </div>
 
     <div class="info-section">
-        <h2>Детализация счета</h2>
+        <h2>Позиции</h2>
         <table class="items-table">
             <thead>
                 <tr>
-                    <th>Название блюда</th>
+                    <th>Название</th>
                     <th class="text-center">Цена</th>
                     <th class="text-center">Кол-во</th>
                     <th>Участники</th>
-                    <th class="text-right">Обслуживание</th>
-                    <th class="text-right">Чаевые</th>
-                    <th class="text-right">Итого</th>
+                    <th class="text-right">Сумма</th>
                 </tr>
             </thead>
             <tbody>
                 @php
-                    $servicePercent = (float)$service_percent;
-                    $tipPercent = (float)$tip_percent;
                     $peopleCount = count($people ?? []);
                 @endphp
                 @foreach($items as $item)
@@ -119,9 +118,6 @@
                             $itemEaters = range(0, $peopleCount - 1);
                         }
                         
-                        $eatersCount = count($itemEaters);
-                        if ($eatersCount === 0) continue;
-                        
                         // Собираем имена участников
                         $eaterNames = [];
                         foreach ($itemEaters as $eaterIndex) {
@@ -130,20 +126,39 @@
                             }
                         }
                         $eatersList = implode(', ', $eaterNames);
-                        
-                        // Рассчитываем общую сумму для блюда
-                        $serviceTotal = $itemTotalPrice * ($servicePercent / 100);
-                        $tipTotal = $itemTotalPrice * ($tipPercent / 100);
-                        $totalForItem = $itemTotalPrice + $serviceTotal + $tipTotal;
                     @endphp
                     <tr>
                         <td>{{ $item['name'] ?: 'Без названия' }}</td>
                         <td class="text-center price-cell">{{ rtrim(rtrim(number_format($itemPrice, 2, '.', ' '), '0'), '.') }}</td>
                         <td class="text-center">{{ $itemQuantity }}</td>
                         <td>{{ $eatersList }}</td>
-                        <td class="text-right price-cell">{{ rtrim(rtrim(number_format($serviceTotal, 2, '.', ' '), '0'), '.') }}</td>
-                        <td class="text-right price-cell">{{ rtrim(rtrim(number_format($tipTotal, 2, '.', ' '), '0'), '.') }}</td>
-                        <td class="text-right price-cell"><strong>{{ rtrim(rtrim(number_format($totalForItem, 2, '.', ' '), '0'), '.') }}</strong></td>
+                        <td class="text-right price-cell">{{ rtrim(rtrim(number_format($itemTotalPrice, 2, '.', ' '), '0'), '.') }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    <div class="info-section">
+        <h2>Результат расчета</h2>
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>Участник</th>
+                    <th class="text-right">Еда</th>
+                    <th class="text-right">Обслуживание</th>
+                    <th class="text-right">Чаевые</th>
+                    <th class="text-right">Итого</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($result['rows'] as $row)
+                    <tr>
+                        <td>{{ $row['name'] }}</td>
+                        <td class="text-right price-cell">{{ rtrim(rtrim(number_format($row['subtotal'], 2, '.', ' '), '0'), '.') }}</td>
+                        <td class="text-right price-cell">{{ rtrim(rtrim(number_format($row['service'], 2, '.', ' '), '0'), '.') }}</td>
+                        <td class="text-right price-cell">{{ rtrim(rtrim(number_format($row['tip'], 2, '.', ' '), '0'), '.') }}</td>
+                        <td class="text-right price-cell"><strong>{{ rtrim(rtrim(number_format($row['total'], 2, '.', ' '), '0'), '.') }}</strong></td>
                     </tr>
                 @endforeach
             </tbody>
