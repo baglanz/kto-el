@@ -18,6 +18,7 @@
         .chips { display:flex; gap:8px; flex-wrap:wrap; }
         .chip { border:1px solid #ddd; border-radius:999px; padding:6px 10px; }
         .muted { color:#666; font-size: 14px; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
     </style>
 </head>
 <body>
@@ -42,12 +43,12 @@
     <div class="card">
         <div class="row">
             <div>
-                <div class="muted">Обслуживание, %</div>
-                <input type="number" step="0.1" name="service_percent" value="{{ old('service_percent', $data['service_percent']) }}">
+                <label for="service_percent" class="muted">Обслуживание, %</label>
+                <input type="number" step="0.1" id="service_percent" name="service_percent" value="{{ old('service_percent', $data['service_percent']) }}">
             </div>
             <div>
-                <div class="muted">Чаевые, %</div>
-                <input type="number" step="0.1" name="tip_percent" value="{{ old('tip_percent', $data['tip_percent']) }}">
+                <label for="tip_percent" class="muted">Чаевые, %</label>
+                <input type="number" step="0.1" id="tip_percent" name="tip_percent" value="{{ old('tip_percent', $data['tip_percent']) }}">
             </div>
         </div>
     </div>
@@ -61,7 +62,8 @@
         <div id="peopleList">
             @foreach (old('people', $data['people']) as $i => $p)
                 <div class="row person-row" data-person-index="{{ $i }}" style="margin-top:8px;">
-                    <input type="text" name="people[{{ $i }}]" placeholder="Имя" value="{{ $p }}">
+                    <label for="people_{{ $i }}" class="sr-only">Имя участника {{ $i + 1 }}</label>
+                    <input type="text" id="people_{{ $i }}" name="people[{{ $i }}]" placeholder="Имя" value="{{ $p }}">
                     <button type="button" class="btn2 remove-person">Удалить</button>
                 </div>
             @endforeach
@@ -82,8 +84,9 @@
         <table id="itemsTable" style="margin-top:8px;">
             <thead>
             <tr>
-                <th style="width:36%;">Название</th>
-                <th style="width:14%;">Цена</th>
+                <th style="width:30%;">Название</th>
+                <th style="width:12%;">Цена</th>
+                <th style="width:10%;">Кол-во</th>
                 <th>Кто ел</th>
                 <th style="width:10%;"></th>
             </tr>
@@ -92,10 +95,16 @@
             @foreach (old('items', $data['items']) as $idx => $item)
                 <tr class="item-row" data-item-index="{{ $idx }}">
                     <td>
-                        <input type="text" name="items[{{ $idx }}][name]" placeholder="Напр. паста" value="{{ $item['name'] ?? '' }}" style="width:100%;">
+                        <label for="item_name_{{ $idx }}" class="sr-only">Название позиции {{ $idx + 1 }}</label>
+                        <input type="text" id="item_name_{{ $idx }}" name="items[{{ $idx }}][name]" placeholder="Напр. паста" value="{{ $item['name'] ?? '' }}" style="width:100%;">
                     </td>
                     <td>
-                        <input type="number" step="0.01" name="items[{{ $idx }}][price]" value="{{ $item['price'] ?? '' }}" style="width:120px;">
+                        <label for="item_price_{{ $idx }}" class="sr-only">Цена позиции {{ $idx + 1 }}</label>
+                        <input type="number" step="0.01" id="item_price_{{ $idx }}" name="items[{{ $idx }}][price]" value="{{ $item['price'] ?? '' }}" style="width:100px;">
+                    </td>
+                    <td>
+                        <label for="item_quantity_{{ $idx }}" class="sr-only">Количество позиции {{ $idx + 1 }}</label>
+                        <input type="number" step="1" min="1" id="item_quantity_{{ $idx }}" name="items[{{ $idx }}][quantity]" value="{{ $item['quantity'] ?? 1 }}" style="width:70px;">
                     </td>
                     <td>
                         <div class="chips eater-chips" data-item-index="{{ $idx }}">
@@ -205,9 +214,10 @@
             const div = document.createElement('div');
             div.className = 'row person-row';
             div.style.marginTop = '8px';
-            div.setAttribute('data-person-index', i);
+            div.setAttribute('data-person-index', String(i));
             div.innerHTML = `
-            <input type="text" name="people[${i}]" placeholder="Имя">
+            <label for="people_${i}" class="sr-only">Имя участника ${i + 1}</label>
+            <input type="text" id="people_${i}" name="people[${i}]" placeholder="Имя">
             <button type="button" class="btn2 remove-person">Удалить</button>
         `;
             peopleList.appendChild(div);
@@ -220,7 +230,7 @@
 
             const tr = document.createElement('tr');
             tr.className = 'item-row';
-            tr.setAttribute('data-item-index', idx);
+            tr.setAttribute('data-item-index', String(idx));
 
             const chips = names.map((n, pi) => {
                 const label = n !== '' ? n : `#${pi+1}`;
@@ -233,8 +243,18 @@
             }).join('');
 
             tr.innerHTML = `
-            <td><input type="text" name="items[${idx}][name]" placeholder="Напр. паста" style="width:100%;"></td>
-            <td><input type="number" step="0.01" name="items[${idx}][price]" value="" style="width:120px;"></td>
+            <td>
+                <label for="item_name_${idx}" class="sr-only">Название позиции ${idx + 1}</label>
+                <input type="text" id="item_name_${idx}" name="items[${idx}][name]" placeholder="Напр. паста" style="width:100%;">
+            </td>
+            <td>
+                <label for="item_price_${idx}" class="sr-only">Цена позиции ${idx + 1}</label>
+                <input type="number" step="0.01" id="item_price_${idx}" name="items[${idx}][price]" value="" style="width:100px;">
+            </td>
+            <td>
+                <label for="item_quantity_${idx}" class="sr-only">Количество позиции ${idx + 1}</label>
+                <input type="number" step="1" min="1" id="item_quantity_${idx}" name="items[${idx}][quantity]" value="1" style="width:70px;">
+            </td>
             <td><div class="chips eater-chips" data-item-index="${idx}">${chips}</div></td>
             <td><button type="button" class="btn2 remove-item">Удалить</button></td>
         `;
