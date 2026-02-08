@@ -19,6 +19,7 @@
         .chip { border:1px solid #ddd; border-radius:999px; padding:6px 10px; }
         .muted { color:#666; font-size: 14px; }
         .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+        .price-cell { white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -138,7 +139,12 @@
 
 @if (!empty($result))
     <div class="card" style="margin-top:12px;">
-        <b>Итог</b>
+        <div class="row" style="justify-content:space-between; align-items:center;">
+            <b>Итог</b>
+            @if(isset($billId))
+                <a href="{{ route('bill.download-pdf', $billId) }}" class="btn" style="text-decoration:none; display:inline-block;">📥 Скачать PDF</a>
+            @endif
+        </div>
         <table style="margin-top:8px;">
             <thead>
             <tr>
@@ -153,10 +159,10 @@
             @foreach ($result['rows'] as $r)
                 <tr>
                     <td>{{ $r['name'] }}</td>
-                    <td>{{ number_format($r['subtotal'], 2, '.', ' ') }}</td>
-                    <td>{{ number_format($r['service'], 2, '.', ' ') }}</td>
-                    <td>{{ number_format($r['tip'], 2, '.', ' ') }}</td>
-                    <td><b>{{ number_format($r['total'], 2, '.', ' ') }}</b></td>
+                    <td class="price-cell">{{ rtrim(rtrim(number_format($r['subtotal'], 2, '.', ' '), '0'), '.') }}</td>
+                    <td class="price-cell">{{ rtrim(rtrim(number_format($r['service'], 2, '.', ' '), '0'), '.') }}</td>
+                    <td class="price-cell">{{ rtrim(rtrim(number_format($r['tip'], 2, '.', ' '), '0'), '.') }}</td>
+                    <td class="price-cell"><b>{{ rtrim(rtrim(number_format($r['total'], 2, '.', ' '), '0'), '.') }}</b></td>
                 </tr>
             @endforeach
             </tbody>
@@ -164,10 +170,10 @@
 
         <div class="row" style="margin-top:10px; justify-content:flex-end;">
             <div class="muted">
-                Сумма позиций: <b>{{ number_format($result['subtotal_total'], 2, '.', ' ') }}</b><br>
-                Обслуживание: <b>{{ number_format($result['service_total'], 2, '.', ' ') }}</b><br>
-                Чаевые: <b>{{ number_format($result['tip_total'], 2, '.', ' ') }}</b><br>
-                Общая сумма: <b>{{ number_format($result['grand_total'], 2, '.', ' ') }}</b>
+                Сумма позиций: <b class="price-cell">{{ rtrim(rtrim(number_format($result['subtotal_total'], 2, '.', ' '), '0'), '.') }}</b><br>
+                Обслуживание: <b class="price-cell">{{ rtrim(rtrim(number_format($result['service_total'], 2, '.', ' '), '0'), '.') }}</b><br>
+                Чаевые: <b class="price-cell">{{ rtrim(rtrim(number_format($result['tip_total'], 2, '.', ' '), '0'), '.') }}</b><br>
+                Общая сумма: <b class="price-cell">{{ rtrim(rtrim(number_format($result['grand_total'], 2, '.', ' '), '0'), '.') }}</b>
             </div>
         </div>
     </div>

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bill;
+use Dompdf\Dompdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class BillSplitController extends Controller
 {
@@ -167,7 +169,7 @@ class BillSplitController extends Controller
         ];
 
         // Сохраняем расчет в базу данных
-        Bill::create([
+        $bill = Bill::create([
             'phone_number' => $request->input('phone_number'),
             'service_percent' => $validated['service_percent'],
             'tip_percent' => $validated['tip_percent'],
@@ -184,6 +186,40 @@ class BillSplitController extends Controller
                 'items' => $items,
             ],
             'result' => $resultData,
+            'billId' => $bill->id,
         ]);
+    }
+
+    public function downloadPdf(Bill $bill): Response
+    {
+        $html = view('bill-pdf', [
+            'bill' => $bill,
+            'result' => $bill->result,
+            'people' => $bill->people,
+            'items' => $bill->items,
+            'service_percent' => $bill->service_percent,
+            'tip_percent' => $bill->tip_percent,
+        ])->render();
+
+        $dompdf = new Dompdf();
+        
+        // Настройка опций через методы объекта
+        $dompdf->getOptions()->set('isHtml5ParserEnabled', true);
+        $dompdf->getOptions()->set('isRemoteEnabled', true);
+        $dompdf->getOptions()->set('defaultFont', 'DejaVu Sans');
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $filename = 'bill-' . $bill->id . '-' . date('Y-m-d') . '.pdf';
+
+        return new Response(
+            $dompdf->output(),
+            200,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ]
+        );
     }
 }
